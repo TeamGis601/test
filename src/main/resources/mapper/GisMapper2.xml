@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gis.mapper.GisMapper2">
+
+<!--    Dto를 Temp Table에 저장     -->
+
+    <insert id="saveGpsOnTempGps" parameterType="com.gis.dto.GpsDto">
+        insert into temp_gps (car_num, date, time, lon, lat)
+        values (#{carNum}, #{date}, #{time}, #{lon}, #{lat})
+    </insert>
+
+    <insert id="saveNoiseOnTempGps" parameterType="com.gis.dto.NoiseDto">
+        insert into temp_noise (car_num, date, time, noise)
+        values (#{carNum}, #{date}, #{time}, #{noise})
+    </insert>
+
+    <insert id="saveFrequencyOnTempGps" parameterType="com.gis.dto.FrequencyDto">
+        insert into temp_frequency (car_num, date, time, frequency)
+        values (#{carNum}, #{date}, #{time}, #{frequency})
+    </insert>
+
+    <!--    Temp Table Data 삭제     -->
+
+    <delete id="deleteAllTempGps">
+        delete from temp_gps
+    </delete>
+
+    <delete id="deleteAllTempNoise">
+        delete from temp_noise
+    </delete>
+
+    <delete id="deleteAllTempFrequency">
+        delete from temp_frequency
+    </delete>
+
+    <!--    Temp Table에서 VO로 전달     -->
+
+    <select id="findCarNumByGpsTable" resultType="java.lang.String">
+        select distinct(car_num) from temp_gps
+    </select>
+
+    <select id="findGpsByCarNum" resultType="com.gis.vo.Gps">
+        select * from temp_gps where car_num = #{carNum} order by date,time desc limit 1;
+    </select>
+
+    <select id="findNoiseByCarNum" resultType="com.gis.vo.Noise">
+        select * from temp_noise where car_num = #{carNum} order by date,time desc limit 1;
+    </select>
+
+    <select id="findFrequencyByCarNum" resultType="com.gis.vo.Frequency">
+        select * from temp_frequency where car_num = #{carNum} order by date,time desc limit 1;
+    </select>
+
+    <!-- localDto -> local_db table에 저장   -->
+    <insert id="saveSensorData">
+        insert into local_db (car_num, date, time, noise, frequency, lon, lat, geom, is_done)
+        values (
+                #{carNum}, #{date}, #{time}, #{noise}, #{frequency}, #{lon}, #{lat},
+                ST_SetSRID(ST_MakePoint(CAST(#{lon} AS DOUBLE PRECISION), CAST(#{lat} AS DOUBLE PRECISION)), 4326),
+                #{isDone}
+                )
+    </insert>
+
+
+</mapper>
